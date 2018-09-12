@@ -28,7 +28,9 @@ public class PinyinUtils {
             for (char curChar : input) {
                 if (Character.toString(curChar).matches("[\\u4E00-\\u9FA5]+")) {
                     String[] temp = PinyinHelper.toHanyuPinyinStringArray(curChar, format);
-                    output += temp[0];
+                    if (temp != null && temp.length > 0) {
+                        output += temp[0];
+                    }
                 } else
                     output += Character.toString(curChar);
             }
@@ -40,6 +42,7 @@ public class PinyinUtils {
 
     /**
      * 获取第一个字的拼音首字母
+     *
      * @param chinese
      * @return
      */

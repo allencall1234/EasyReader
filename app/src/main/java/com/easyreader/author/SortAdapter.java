@@ -9,7 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.easyreader.R;
+import com.easyreader.base.CustomWebViewActivity;
 import com.easyreader.bean.AuthorInfo;
+import com.easyreader.core.ApiUrl;
 
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
 
     @Override
     public SortAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.item, parent,false);
+        View view = mInflater.inflate(R.layout.item, parent, false);
         ViewHolder viewHolder = new ViewHolder(view);
         viewHolder.tvTag = (TextView) view.findViewById(R.id.tag);
         viewHolder.tvName = (TextView) view.findViewById(R.id.name);
@@ -64,7 +66,15 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
         holder.tvName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(mContext, mData.get(position).authorName,Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mData.get(position).authorName, Toast.LENGTH_SHORT).show();
+                String url = mData.get(position).authorUrl;
+                if (url != null && !url.startsWith("http")) {
+                    url = ApiUrl.BASE_URL + url;
+                }
+
+                if (url != null) {
+                    CustomWebViewActivity.startIt(mContext, url, "");
+                }
             }
         });
 
@@ -97,9 +107,10 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
 
     /**
      * 提供给Activity刷新数据
+     *
      * @param list
      */
-    public void updateList(List<AuthorInfo> list){
+    public void updateList(List<AuthorInfo> list) {
         this.mData = list;
         notifyDataSetChanged();
     }

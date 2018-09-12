@@ -60,7 +60,7 @@ public class ApiImpl extends ApiUrl {
             Document document = Jsoup.connect(BASE_URL + url).get();
             Elements elements = document.select(".tb a[href]");
             for (Element e : elements) {
-                list.add(new AuthorInfo(e.attr("herf"), e.text()));
+                list.add(new AuthorInfo(e.attr("href"), e.text()));
             }
             Log.d("zlt", "test");
         } catch (Exception e) {

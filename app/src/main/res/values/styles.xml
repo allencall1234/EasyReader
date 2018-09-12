@@ -30,4 +30,12 @@
     <style name="ProgressLoading" parent="ProgressHUD">
         <item name="android:backgroundDimEnabled">false</item><!--模糊-->
     </style>
+
+    <!-- layout的默认样式 -->
+    <style name="my_layoutxml_style">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@color/default_layoutxml_bg</item>
+        <item name="android:orientation">vertical</item>
+    </style>
 </resources>

@@ -16,6 +16,7 @@ import com.easyreader.base.BaseFragment;
 import com.easyreader.bean.AuthorInfo;
 import com.easyreader.core.ApiImpl;
 import com.easyreader.core.RxAsyncTask;
+import com.easyreader.dialog.LoadingDialog;
 import com.easyreader.utils.PinyinComparator;
 import com.xp.sortrecyclerview.ClearEditText;
 import com.xp.sortrecyclerview.PinyinUtils;
@@ -79,6 +80,18 @@ public class AuthorListFragment extends BaseFragment {
 
                 authorInfos.addAll(lists);
                 initViews();
+            }
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                LoadingDialog.showIfNotExist(mBaseContext,false);
+            }
+
+            @Override
+            protected void onCompleted() {
+                super.onCompleted();
+                LoadingDialog.dismissIfExist();
             }
         }.execute();
     }
