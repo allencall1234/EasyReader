@@ -13,9 +13,11 @@ import android.view.ViewGroup;
 
 import com.easyreader.R;
 import com.easyreader.base.BaseFragment;
-import com.easyreader.bean.AuthorType;
 import com.easyreader.core.ApiImpl;
 import com.easyreader.core.RxAsyncTask;
+import com.easyreader.database.bean.Category;
+import com.easyreader.database.dao.CategoryDao;
+import com.easyreader.utils.CommonUtils;
 import com.easyreader.utils.ScaleTransitionPagerTitleView;
 import com.easyreader.utils.ToastUtils;
 
@@ -41,7 +43,8 @@ public class AuthorFragment extends BaseFragment {
     ViewPager viewPager = null;
     PagerAdapter vAdapter = null;
     CommonNavigatorAdapter indicatorAdapter;
-    List<AuthorType> mDataList;
+    List<Category> mDataList;
+    private CategoryDao categoryDao;
 
 
     @Override
@@ -50,27 +53,52 @@ public class AuthorFragment extends BaseFragment {
         baseLayout.setTitleBarAndStatusBar(false, true);
         indicator = view.findViewById(R.id.magic_indicator);
         viewPager = view.findViewById(R.id.fragments);
-        new RxAsyncTask<Void, Void, List<AuthorType>>() {
+        showLoading();
+
+
+        categoryDao = new CategoryDao();
+        List<Category> categories = categoryDao.queryAll();
+
+        if (CommonUtils.isNullOrEmpty(categories)) {
+            queryCategoriesFromNetwork();
+        } else {
+            initMagicIndicator6(categories);
+        }
+        return view;
+    }
+
+    private void queryCategoriesFromNetwork() {
+        new RxAsyncTask<Void, Void, List<Category>>() {
 
             @Override
-            protected List<AuthorType> call(Void... voids) {
-                return ApiImpl.getAuthorType();
+            protected List<Category> call(Void... voids) {
+                return ApiImpl.getCategories();
             }
 
             @Override
-            protected void onResult(List<AuthorType> authorTypes) {
-                super.onResult(authorTypes);
-                initMagicIndicator6(authorTypes);
+            protected void onResult(List<Category> categories) {
+                super.onResult(categories);
+                saveToDatabase(categories);
+                initMagicIndicator6(categories);
+            }
+
+            @Override
+            protected void onCompleted() {
+                super.onCompleted();
+                hideLoding();
             }
 
             @Override
             protected void onError(Throwable e) {
                 super.onError(e);
+                hideLoding();
                 ToastUtils.showShortToast("查询作家列表失败");
             }
         }.execute();
+    }
 
-        return view;
+    private void saveToDatabase(List<Category> categories) {
+        categoryDao.add(categories);
     }
 
     @Override
@@ -80,10 +108,9 @@ public class AuthorFragment extends BaseFragment {
 
     @Override
     public void initDataDelay() {
-        ApiImpl.getAuthorType();
     }
 
-    private void initMagicIndicator6(List<AuthorType> authorTypes) {
+    private void initMagicIndicator6(List<Category> categories) {
 
         if (mDataList == null) {
             mDataList = new ArrayList<>();
@@ -91,7 +118,7 @@ public class AuthorFragment extends BaseFragment {
             mDataList.clear();
         }
 
-        mDataList.addAll(authorTypes);
+        mDataList.addAll(categories);
 
         initViewPager();
 
@@ -106,7 +133,7 @@ public class AuthorFragment extends BaseFragment {
             @Override
             public IPagerTitleView getTitleView(Context context, final int index) {
                 SimplePagerTitleView simplePagerTitleView = new ScaleTransitionPagerTitleView(context);
-                simplePagerTitleView.setText(mDataList.get(index).desc);
+                simplePagerTitleView.setText(mDataList.get(index).getCategoryName());
                 simplePagerTitleView.setTextSize(18);
                 simplePagerTitleView.setNormalColor(Color.GRAY);
                 simplePagerTitleView.setSelectedColor(Color.BLACK);
@@ -135,8 +162,9 @@ public class AuthorFragment extends BaseFragment {
             vAdapter = new FragmentPagerAdapter(getChildFragmentManager()) {
                 @Override
                 public Fragment getItem(int position) {
-                    AuthorType bean = mDataList.get(position);
-                    Fragment fragment = AuthorListFragment.newInstance(bean.desc,bean.url);
+                    Category bean = mDataList.get(position);
+                    Category saveData = categoryDao.queryByName(bean.getCategoryName());
+                    Fragment fragment = AuthorListFragment.newInstance(saveData);
                     return fragment;
                 }
 

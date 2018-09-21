@@ -16,7 +16,14 @@ import com.easyreader.base.BaseFragment;
 import com.easyreader.bean.AuthorInfo;
 import com.easyreader.core.ApiImpl;
 import com.easyreader.core.RxAsyncTask;
+import com.easyreader.database.bean.Category;
+import com.easyreader.database.bean.Writer;
+import com.easyreader.database.bean.WriterCategory;
+import com.easyreader.database.dao.CategoryDao;
+import com.easyreader.database.dao.WriterCategoryDao;
+import com.easyreader.database.dao.WriterDao;
 import com.easyreader.dialog.LoadingDialog;
+import com.easyreader.utils.CommonUtils;
 import com.easyreader.utils.PinyinComparator;
 import com.xp.sortrecyclerview.ClearEditText;
 import com.xp.sortrecyclerview.PinyinUtils;
@@ -38,12 +45,15 @@ public class AuthorListFragment extends BaseFragment {
     private ClearEditText mClearEditText;
     LinearLayoutManager manager;
     private View view;
-    private List<AuthorInfo> authorInfos;
+    private List<Writer> authorInfos;
 
     /**
      * 根据拼音来排列RecyclerView里面的数据类
      */
     private PinyinComparator pinyinComparator;
+
+    private Category mCategory;
+    private WriterCategoryDao dao;
 
     @Override
     protected View initView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -59,33 +69,56 @@ public class AuthorListFragment extends BaseFragment {
 
     @Override
     public void initDataDelay() {
-        String name = getArguments().getString("name");
-        final String url = getArguments().getString("url");
 
-        new RxAsyncTask<String, Void, List<AuthorInfo>>() {
+        mCategory = (Category) getArguments().getSerializable("item");
+        dao = new WriterCategoryDao();
+
+        List<WriterCategory> writerCategories = dao.queryById(mCategory.getId());
+        if (CommonUtils.isNullOrEmpty(writerCategories)) {
+            queryFromNetwrok();
+        } else {
+            if (authorInfos == null) {
+                authorInfos = new ArrayList<>();
+            } else {
+                authorInfos.clear();
+            }
+            authorInfos = new ArrayList<>();
+
+            for (WriterCategory item : writerCategories) {
+                authorInfos.add(item.writer);
+            }
+            initViews();
+        }
+
+
+    }
+
+    private void queryFromNetwrok() {
+        new RxAsyncTask<String, Void, List<Writer>>() {
 
             @Override
-            protected List<AuthorInfo> call(String... strings) {
-                return ApiImpl.getAuthorInfos(url);
+            protected List<Writer> call(String... strings) {
+                return ApiImpl.getAuthorInfos(mCategory.getCategoryUrl());
             }
 
             @Override
-            protected void onResult(List<AuthorInfo> lists) {
+            protected void onResult(List<Writer> lists) {
                 super.onResult(lists);
-                if (authorInfos == null){
+                if (authorInfos == null) {
                     authorInfos = new ArrayList<>();
-                }else {
+                } else {
                     authorInfos.clear();
                 }
 
                 authorInfos.addAll(lists);
                 initViews();
+                saveToDatabase();
             }
 
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                LoadingDialog.showIfNotExist(mBaseContext,false);
+                LoadingDialog.showIfNotExist(mBaseContext, false);
             }
 
             @Override
@@ -96,11 +129,28 @@ public class AuthorListFragment extends BaseFragment {
         }.execute();
     }
 
-    public static AuthorListFragment newInstance(String name, String url) {
+    private void saveToDatabase() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                WriterDao writerDao = new WriterDao();
+                WriterCategoryDao dao = new WriterCategoryDao();
+                for (Writer writer : authorInfos) {
+                    writerDao.add(writer);
+                    WriterCategory bean = new WriterCategory();
+                    bean.setCategory(mCategory);
+                    bean.setWriter(writer);
+                    dao.add(bean);
+                }
+            }
+        }).start();
+    }
+
+    public static AuthorListFragment newInstance(Category category) {
 
         Bundle args = new Bundle();
-        args.putString("name", name);
-        args.putString("url", url);
+        args.putSerializable("item", category);
+
         AuthorListFragment fragment = new AuthorListFragment();
         fragment.setArguments(args);
         return fragment;
@@ -170,9 +220,9 @@ public class AuthorListFragment extends BaseFragment {
 
 
     private void parseAuthorLists() {
-        for (AuthorInfo authorInfo : authorInfos) {
+        for (Writer authorInfo : authorInfos) {
             //汉字转换成拼音
-            String pinyin = PinyinUtils.getPingYin(authorInfo.authorName);
+            String pinyin = PinyinUtils.getPingYin(authorInfo.getWriterName());
             String sortString = pinyin.substring(0, 1).toUpperCase();
 
             // 正则表达式，判断首字母是否是英文字母
@@ -190,14 +240,14 @@ public class AuthorListFragment extends BaseFragment {
      * @param filterStr
      */
     private void filterData(String filterStr) {
-        List<AuthorInfo> filterDateList = new ArrayList<>();
+        List<Writer> filterDateList = new ArrayList<>();
 
         if (TextUtils.isEmpty(filterStr)) {
             filterDateList = authorInfos;
         } else {
             filterDateList.clear();
-            for (AuthorInfo authorInfo : authorInfos) {
-                String name = authorInfo.authorName;
+            for (Writer authorInfo : authorInfos) {
+                String name = authorInfo.getWriterName();
                 if (name.indexOf(filterStr.toString()) != -1 ||
                         PinyinUtils.getFirstSpell(name).startsWith(filterStr.toString())
                         //不区分大小写

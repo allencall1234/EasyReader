@@ -1,6 +1,7 @@
 package com.easyreader.author;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,10 +9,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.easyreader.AuthorActivity;
 import com.easyreader.R;
 import com.easyreader.base.CustomWebViewActivity;
 import com.easyreader.bean.AuthorInfo;
 import com.easyreader.core.ApiUrl;
+import com.easyreader.database.bean.Writer;
 
 import java.util.List;
 
@@ -22,10 +25,10 @@ import java.util.List;
 
 public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
     private LayoutInflater mInflater;
-    private List<AuthorInfo> mData;
+    private List<Writer> mData;
     private Context mContext;
 
-    public SortAdapter(Context context, List<AuthorInfo> data) {
+    public SortAdapter(Context context, List<Writer> data) {
         mInflater = LayoutInflater.from(context);
         mData = data;
         this.mContext = context;
@@ -61,19 +64,22 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
 
         }
 
-        holder.tvName.setText(this.mData.get(position).authorName);
+        holder.tvName.setText(this.mData.get(position).getWriterName());
 
         holder.tvName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(mContext, mData.get(position).authorName, Toast.LENGTH_SHORT).show();
-                String url = mData.get(position).authorUrl;
+                Toast.makeText(mContext, mData.get(position).getWriterName(), Toast.LENGTH_SHORT).show();
+                String url = mData.get(position).getWriterUrl();
                 if (url != null && !url.startsWith("http")) {
                     url = ApiUrl.BASE_URL + url;
                 }
 
                 if (url != null) {
-                    CustomWebViewActivity.startIt(mContext, url, "");
+//                    CustomWebViewActivity.startIt(mContext, url, "");
+                    Intent intent = new Intent(mContext, AuthorActivity.class);
+                    intent.putExtra("url", url);
+                    mContext.startActivity(intent);
                 }
             }
         });
@@ -110,7 +116,7 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
      *
      * @param list
      */
-    public void updateList(List<AuthorInfo> list) {
+    public void updateList(List<Writer> list) {
         this.mData = list;
         notifyDataSetChanged();
     }

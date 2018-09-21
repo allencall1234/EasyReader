@@ -1,12 +1,13 @@
 package com.easyreader.utils;
 
 import com.easyreader.bean.AuthorInfo;
+import com.easyreader.database.bean.Writer;
 
 import java.util.Comparator;
 
-public class PinyinComparator implements Comparator<AuthorInfo> {
+public class PinyinComparator implements Comparator<Writer> {
 
-	public int compare(AuthorInfo o1, AuthorInfo o2) {
+	public int compare(Writer o1, Writer o2) {
 		if (o1.firstLetter.equals("@")
 				|| o2.firstLetter.equals("#")) {
 			return 1;

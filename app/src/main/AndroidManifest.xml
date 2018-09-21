@@ -22,6 +22,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".base.CustomWebViewActivity" />
+        <activity android:name=".AuthorActivity" />
+        <activity android:name=".ChapterListActivity" />
     </application>
 
 </manifest>
