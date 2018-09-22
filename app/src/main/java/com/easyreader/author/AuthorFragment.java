@@ -53,13 +53,14 @@ public class AuthorFragment extends BaseFragment {
         baseLayout.setTitleBarAndStatusBar(false, true);
         indicator = view.findViewById(R.id.magic_indicator);
         viewPager = view.findViewById(R.id.fragments);
-        showLoading();
+        viewPager.setOffscreenPageLimit(5);
 
 
         categoryDao = new CategoryDao();
         List<Category> categories = categoryDao.queryAll();
 
         if (CommonUtils.isNullOrEmpty(categories)) {
+            showLoading();
             queryCategoriesFromNetwork();
         } else {
             initMagicIndicator6(categories);

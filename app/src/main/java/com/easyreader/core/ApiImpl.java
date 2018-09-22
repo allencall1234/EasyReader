@@ -32,7 +32,6 @@ public class ApiImpl extends ApiUrl {
         try {
             Document document = Jsoup.connect(BASE_URL).get();
             Elements element = document.select("td");
-            LogUtil.d("--------------" + element.toString());
             for (Element e : element) {
                 String text = e.text();
                 if (text.contains("所有作家")) {
@@ -54,8 +53,6 @@ public class ApiImpl extends ApiUrl {
     }
 
     public static List<Writer> getAuthorInfos(String url) {
-        LogUtil.d("------------getAuthorInfos()--------------");
-        LogUtil.d("------------url=" + url + "--------------");
         List<Writer> list = new ArrayList<>();
         try {
             Document document = Jsoup.connect(BASE_URL + url).get();

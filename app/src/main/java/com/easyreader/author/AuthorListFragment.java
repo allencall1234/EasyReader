@@ -24,11 +24,14 @@ import com.easyreader.database.dao.WriterCategoryDao;
 import com.easyreader.database.dao.WriterDao;
 import com.easyreader.dialog.LoadingDialog;
 import com.easyreader.utils.CommonUtils;
+import com.easyreader.utils.LogUtil;
 import com.easyreader.utils.PinyinComparator;
+import com.easyreader.utils.ToastUtils;
 import com.xp.sortrecyclerview.ClearEditText;
 import com.xp.sortrecyclerview.PinyinUtils;
 import com.xp.sortrecyclerview.SideBar;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,23 +76,47 @@ public class AuthorListFragment extends BaseFragment {
         mCategory = (Category) getArguments().getSerializable("item");
         dao = new WriterCategoryDao();
 
-        List<WriterCategory> writerCategories = dao.queryById(mCategory.getId());
-        if (CommonUtils.isNullOrEmpty(writerCategories)) {
-            queryFromNetwrok();
-        } else {
-            if (authorInfos == null) {
-                authorInfos = new ArrayList<>();
-            } else {
-                authorInfos.clear();
-            }
-            authorInfos = new ArrayList<>();
+        new RxAsyncTask<Void, Void, List<Writer>>() {
 
-            for (WriterCategory item : writerCategories) {
-                authorInfos.add(item.writer);
+            @Override
+            protected List<Writer> call(Void... voids) {
+                try {
+                    return dao.lookupWriterForCategory(mCategory);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
-            initViews();
-        }
 
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                showLoading();
+            }
+
+            @Override
+            protected void onResult(List<Writer> writers) {
+                super.onResult(writers);
+                if (CommonUtils.isNullOrEmpty(writers)) {
+                    queryFromNetwrok();
+                } else {
+                    if (authorInfos == null) {
+                        authorInfos = new ArrayList<>();
+                    } else {
+                        authorInfos.clear();
+                    }
+
+                    authorInfos.addAll(writers);
+                    initViews();
+                }
+            }
+
+            @Override
+            protected void onCompleted() {
+                super.onCompleted();
+                hideLoding();
+            }
+        }.execute();
 
     }
 
@@ -118,13 +145,13 @@ public class AuthorListFragment extends BaseFragment {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                LoadingDialog.showIfNotExist(mBaseContext, false);
+                showLoading();
             }
 
             @Override
             protected void onCompleted() {
                 super.onCompleted();
-                LoadingDialog.dismissIfExist();
+                hideLoding();
             }
         }.execute();
     }
@@ -136,11 +163,17 @@ public class AuthorListFragment extends BaseFragment {
                 WriterDao writerDao = new WriterDao();
                 WriterCategoryDao dao = new WriterCategoryDao();
                 for (Writer writer : authorInfos) {
-                    writerDao.add(writer);
+                    Writer temp = writerDao.query(writer.getWriterUrl());
+                    if (temp == null) {
+                        writerDao.add(writer);
+                    } else {
+                        writer = temp;
+                    }
                     WriterCategory bean = new WriterCategory();
                     bean.setCategory(mCategory);
                     bean.setWriter(writer);
                     dao.add(bean);
+                    LogUtil.d(writer.toString());
                 }
             }
         }).start();
