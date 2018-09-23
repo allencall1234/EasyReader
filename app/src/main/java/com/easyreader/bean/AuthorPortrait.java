@@ -1,5 +1,7 @@
 package com.easyreader.bean;
 
+import com.easyreader.database.bean.Book;
+
 import java.util.List;
 
 /**
@@ -7,13 +9,8 @@ import java.util.List;
  */
 
 public class AuthorPortrait {
-    public String title;
     public String content;
 
-    public List<BookInfo> bookList;
+    public List<Book> bookList;
 
-    public static class BookInfo {
-        public String bookName;
-        public String bookUrl;
-    }
 }

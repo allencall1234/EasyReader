@@ -71,9 +71,6 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
             public void onClick(View view) {
                 Toast.makeText(mContext, mData.get(position).getWriterName(), Toast.LENGTH_SHORT).show();
                 String url = mData.get(position).getWriterUrl();
-                if (url != null && !url.startsWith("http")) {
-                    url = ApiUrl.BASE_URL + url;
-                }
 
                 if (url != null) {
 //                    CustomWebViewActivity.startIt(mContext, url, "");

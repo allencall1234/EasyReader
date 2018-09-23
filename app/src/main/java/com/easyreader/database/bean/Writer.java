@@ -23,6 +23,9 @@ public class Writer {
     @DatabaseField
     public String firstLetter;
 
+    @DatabaseField
+    public String resumeMe;
+
     public Writer() {
 
     }
@@ -44,4 +47,7 @@ public class Writer {
         return id;
     }
 
+    public String getResumeMe() {
+        return resumeMe;
+    }
 }

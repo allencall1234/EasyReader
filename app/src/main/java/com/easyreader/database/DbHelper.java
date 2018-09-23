@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.easyreader.base.BaseApplication;
+import com.easyreader.database.bean.Book;
 import com.easyreader.database.bean.Category;
 import com.easyreader.database.bean.Writer;
 import com.easyreader.database.bean.WriterCategory;
@@ -48,6 +49,7 @@ public class DbHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Category.class);
             TableUtils.createTable(connectionSource, Writer.class);
             TableUtils.createTable(connectionSource, WriterCategory.class);
+            TableUtils.createTable(connectionSource, Book.class);
             LogUtil.d("DbHelper onCreate");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -62,10 +64,12 @@ public class DbHelper extends OrmLiteSqliteOpenHelper {
                 TableUtils.dropTable(connectionSource, Writer.class, true);
                 TableUtils.dropTable(connectionSource, Category.class, true);
                 TableUtils.dropTable(connectionSource, WriterCategory.class, true);
+                TableUtils.dropTable(connectionSource, Book.class, true);
 
                 TableUtils.createTable(connectionSource, Category.class);
                 TableUtils.createTable(connectionSource, Writer.class);
                 TableUtils.createTable(connectionSource, WriterCategory.class);
+                TableUtils.createTable(connectionSource, Book.class);
 
                 LogUtil.d("Updata database to version :" + newVersion);
             } catch (SQLException e) {

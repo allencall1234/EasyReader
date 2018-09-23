@@ -70,7 +70,7 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
                 if (tempSelectIndex < chapterList.size() - 1) {
                     tempSelectIndex++;
                     currentChapter = chapterList.get(tempSelectIndex).chapterName;
-                    getBookContent(base_url + chapterList.get(tempSelectIndex).url);
+                    getBookContent(chapterList.get(tempSelectIndex).url);
                 } else {
                     ToastUtils.showShortToast("当前已经是最后一页");
                 }
@@ -83,7 +83,7 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
                 if (tempSelectIndex > 0) {
                     tempSelectIndex--;
                     currentChapter = chapterList.get(tempSelectIndex).chapterName;
-                    getBookContent(base_url + chapterList.get(tempSelectIndex).url);
+                    getBookContent(chapterList.get(tempSelectIndex).url);
                 } else {
                     ToastUtils.showShortToast("当前已经是第一页");
                 }
@@ -109,14 +109,14 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
     @Override
     public void setData() {
 
-        final String url = getIntent().getStringExtra("url");
-        int index = url.lastIndexOf("/");
-        base_url = url.substring(0, index + 1);
+        base_url = getIntent().getStringExtra("url");
+//        int index = url.lastIndexOf("/");
+//        base_url = url.substring(0, index + 1);
         new RxAsyncTask<String, Void, List<Chapter>>() {
 
             @Override
             protected List<Chapter> call(String... strings) {
-                return ApiImpl.getCharpter(url);
+                return ApiImpl.getCharpter(base_url);
             }
 
             @Override
@@ -137,7 +137,8 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
                 }
 
                 currentChapter = chapterList.get(0).chapterName;
-                getBookContent(base_url + chapterList.get(0).url);
+                initBaseUrl(chapterList.get(0).url);
+                getBookContent(chapterList.get(0).url);
             }
 
             @Override
@@ -154,12 +155,45 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
         }.execute();
     }
 
-    public void getBookContent(final String url) {
+    private void initBaseUrl(String url) {
+        String[] baseUrls = null;
+        if (url.startsWith("/")) {
+            url = url.substring(1);
+        }
+
+        if (base_url.endsWith(".html")) {
+            base_url = base_url.substring(0, base_url.length() - 5);
+        }
+
+        baseUrls = base_url.split("/");
+
+        int index = 2;
+        for (int i = index; i < baseUrls.length; i++) {
+            if (url.startsWith(baseUrls[i])) {
+                break;
+            } else {
+                index++;
+            }
+        }
+        base_url = "";
+
+        for (int i = 0; i < index; i++) {
+            base_url += baseUrls[i] + "/";
+        }
+
+    }
+
+    public void getBookContent(String url) {
+        if (url.startsWith("/")) {
+            url = url.substring(1);
+        }
+
+        final String resultUrl = base_url + url;
         new RxAsyncTask<String, Void, String>() {
 
             @Override
             protected String call(String... strings) {
-                return ApiImpl.getCharpterContent(url);
+                return ApiImpl.getCharpterContent(resultUrl);
             }
 
             @Override
@@ -217,7 +251,7 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
                 public void onClick(View view) {
                     String bookUrl = chapterList.get(position).url;
                     currentChapter = chapterList.get(position).chapterName;
-                    getBookContent(base_url + bookUrl);
+                    getBookContent(bookUrl);
                     tempSelectIndex = position;
                     drawer.closeDrawers();
                 }

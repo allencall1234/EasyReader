@@ -5,6 +5,7 @@ import android.util.Log;
 import com.easyreader.bean.AuthorInfo;
 import com.easyreader.bean.AuthorPortrait;
 import com.easyreader.bean.Chapter;
+import com.easyreader.database.bean.Book;
 import com.easyreader.database.bean.Category;
 import com.easyreader.database.bean.Writer;
 import com.easyreader.utils.LogUtil;
@@ -72,25 +73,27 @@ public class ApiImpl extends ApiUrl {
         AuthorPortrait portrait = new AuthorPortrait();
         try {
             Document document = Jsoup.connect(url).get();
-            Elements titleEle = document.select("h2 b");
-            if (titleEle.size() > 0) {
-                portrait.title = titleEle.get(0).text();
-            }
+//            Elements titleEle = document.select("h2 b");
+//            if (titleEle.size() > 0) {
+//                portrait.title = titleEle.get(0).text();
+//            }
 
             Elements booksEle = document.select("tbody tr td[valign='top']");
             document = Jsoup.parse(booksEle.get(1).toString());
 
-            portrait.content = document.select("p").get(0).text();
+            if (document.select("p").size() > 0) {
+                portrait.content = document.select("p").get(0).text();
+            }
 
             booksEle = document.select("a:not(:has(img))[href]");
 
-            List<AuthorPortrait.BookInfo> bookInfos = new ArrayList<>();
+            List<Book> bookInfos = new ArrayList<>();
 
             for (Element e : booksEle) {
-                AuthorPortrait.BookInfo bookInfo = new AuthorPortrait.BookInfo();
-                bookInfo.bookName = e.text().split("\\s+")[0];
-                bookInfo.bookUrl = e.attr("href");
-                bookInfos.add(bookInfo);
+                Book book = new Book();
+                book.setBookName(e.text().split("\\s+")[0]);
+                book.setBookUrl(e.attr("href"));
+                bookInfos.add(book);
             }
 
             portrait.bookList = bookInfos;
@@ -124,6 +127,9 @@ public class ApiImpl extends ApiUrl {
         try {
             Document document = Jsoup.connect(url).get();
             Elements elements = document.select("td[bgcolor]>p");
+            if (elements.size() <= 0) {
+                elements = document.select("#content");
+            }
             content = elements.get(0).toString();
         } catch (Exception e) {
             e.printStackTrace();
