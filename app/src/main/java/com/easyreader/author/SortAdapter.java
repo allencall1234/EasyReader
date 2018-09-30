@@ -2,6 +2,7 @@ package com.easyreader.author;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,6 +66,14 @@ public class SortAdapter extends RecyclerView.Adapter<SortAdapter.ViewHolder> {
         }
 
         holder.tvName.setText(this.mData.get(position).getWriterName());
+        if (mData.get(position).status == 1) {
+            holder.tvName.setTextColor(mContext.getResources().getColor(R.color.color_dddddd));
+            holder.tvName.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+        } else {
+            holder.tvName.setTextColor(mContext.getResources().getColor(R.color.color_336598));
+            int flag = holder.tvName.getPaintFlags();
+            holder.tvName.getPaint().setFlags(flag & ~Paint.STRIKE_THRU_TEXT_FLAG);
+        }
 
         holder.tvName.setOnClickListener(new View.OnClickListener() {
             @Override

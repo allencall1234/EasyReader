@@ -9,7 +9,9 @@ import com.easyreader.database.bean.Book;
 import com.easyreader.database.bean.Category;
 import com.easyreader.database.bean.Writer;
 import com.easyreader.utils.LogUtil;
+import com.easyreader.utils.ToastUtils;
 
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,6 +20,8 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by 524202 on 2018/8/30.
@@ -98,7 +102,10 @@ public class ApiImpl extends ApiUrl {
 
             portrait.bookList = bookInfos;
 
-        } catch (Exception e) {
+        } catch (IOException e) {
+            if (e instanceof HttpStatusException) {
+                portrait.code = ((HttpStatusException) e).getStatusCode();
+            }
             e.printStackTrace();
         }
 

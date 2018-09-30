@@ -16,6 +16,7 @@ import android.view.WindowManager;
 
 import com.easyreader.dialog.LoadingDialog;
 import com.easyreader.utils.CommonUtils;
+import com.easyreader.utils.EventBusUtils;
 import com.easyreader.utils.SystemBarHelper;
 import com.easyreader.utils.ToastUtils;
 
@@ -62,6 +63,11 @@ public abstract class BaseActivity extends FragmentActivity implements OnClickLi
             addPresenters();
             setListener();
             setData();
+
+            if (registerEventBus) {
+                //注册
+                EventBusUtils.register(mBaseContext);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

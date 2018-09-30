@@ -10,7 +10,7 @@ import java.util.List;
 
 public class AuthorPortrait {
     public String content;
-
+    public int code;
     public List<Book> bookList;
 
 }

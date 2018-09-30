@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.easyreader.dialog.LoadingDialog;
 import com.easyreader.utils.CommonUtils;
+import com.easyreader.utils.EventBusUtils;
 
 
 /**
@@ -50,7 +51,7 @@ public abstract class BaseFragment extends Fragment implements View.OnClickListe
         lazyLoad();
         if (registerEventBus) {
             //注册
-//            EventBusUtils.register(this);
+            EventBusUtils.register(this);
         }
         return baseLayout;
     }

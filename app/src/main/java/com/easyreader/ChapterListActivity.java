@@ -165,6 +165,10 @@ public class ChapterListActivity extends BaseActivity implements NavigationView.
             base_url = base_url.substring(0, base_url.length() - 5);
         }
 
+        if (base_url.endsWith("index")){
+            base_url = base_url.substring(0, base_url.length() - 5);
+        }
+
         baseUrls = base_url.split("/");
 
         int index = 2;

@@ -26,6 +26,10 @@ public class Writer {
     @DatabaseField
     public String resumeMe;
 
+    //status 0-有效，1-无效
+    @DatabaseField
+    public int status;
+
     public Writer() {
 
     }

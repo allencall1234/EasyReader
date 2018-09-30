@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.easyreader.base.BaseActivity;
 import com.easyreader.base.CustomWebViewActivity;
 import com.easyreader.bean.AuthorPortrait;
+import com.easyreader.bean.event.EventUpdateWriter;
 import com.easyreader.core.ApiImpl;
 import com.easyreader.core.ApiUrl;
 import com.easyreader.core.RxAsyncTask;
@@ -24,6 +25,8 @@ import com.easyreader.database.dao.CommonDao;
 import com.easyreader.database.dao.WriterDao;
 import com.easyreader.dialog.LoadingDialog;
 import com.easyreader.utils.CommonUtils;
+import com.easyreader.utils.EventBusUtils;
+import com.easyreader.utils.ToastUtils;
 
 import org.jsoup.helper.StringUtil;
 
@@ -65,8 +68,9 @@ public class AuthorActivity extends BaseActivity {
 
         writer = writerDao.query(url);
         bookList = bookDao.queryAll(writer.getId());
-        if (TextUtils.isEmpty(writer.getResumeMe())
-                && CommonUtils.isNullOrEmpty(bookList)) {
+        if ((TextUtils.isEmpty(writer.getResumeMe())
+                && CommonUtils.isNullOrEmpty(bookList))
+                || writer.status == 1) {
             queryFromNetwork(url);
         } else {
             if (mAdapter == null) {
@@ -100,7 +104,21 @@ public class AuthorActivity extends BaseActivity {
                 super.onResult(authorPortrait);
                 if (authorPortrait.bookList == null) {
                     finish();
+                    if (authorPortrait.code == 404) {
+                        if (writer.status == 0) {
+                            writer.status = 1;
+                        }
+                        writerDao.update(writer);
+                        EventBusUtils.poseEvent(new EventUpdateWriter(writer.getId(), writer.status));
+                        ToastUtils.showLongToast(writer.getWriterName() + "的相关作品不存在或已被删除");
+                    }
                     return;
+                }
+
+                if (writer.status == 1) {
+                    writer.status = 0;
+                    writerDao.update(writer);
+                    EventBusUtils.poseEvent(new EventUpdateWriter(writer.getId(), writer.status));
                 }
 
                 bookList = authorPortrait.bookList;

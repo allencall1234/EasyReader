@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.easyreader.R;
 import com.easyreader.base.BaseFragment;
 import com.easyreader.bean.AuthorInfo;
+import com.easyreader.bean.event.EventUpdateWriter;
 import com.easyreader.core.ApiImpl;
 import com.easyreader.core.RxAsyncTask;
 import com.easyreader.database.bean.Category;
@@ -30,6 +31,9 @@ import com.easyreader.utils.ToastUtils;
 import com.xp.sortrecyclerview.ClearEditText;
 import com.xp.sortrecyclerview.PinyinUtils;
 import com.xp.sortrecyclerview.SideBar;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -61,6 +65,7 @@ public class AuthorListFragment extends BaseFragment {
     @Override
     protected View initView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_authorlist_layout, null);
+        registerEventBus();
         baseLayout.setTitleBarAndStatusBar(false, true);
         return view;
     }
@@ -295,5 +300,20 @@ public class AuthorListFragment extends BaseFragment {
         // 根据a-z进行排序
         Collections.sort(filterDateList, pinyinComparator);
         adapter.updateList(filterDateList);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(EventUpdateWriter event) {
+        if (adapter != null) {
+            int id = event.id;
+            for (int i = 0; i < authorInfos.size(); i++) {
+                Writer writer = authorInfos.get(i);
+                if (writer.getId() == id) {
+                    writer.status = event.status;
+                    adapter.notifyItemChanged(i);
+                    break;
+                }
+            }
+        }
     }
 }
